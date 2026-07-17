@@ -13,9 +13,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>Supacode</string>
+	<string>Dupacode</string>
 	<key>CFBundleName</key>
-	<string>Supacode</string>
+	<string>Dupacode</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -67,18 +67,19 @@
     <string>https://supacode.sh/download/latest/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>eBdTbl+6sR8gxO1zyzyvdQHuJrXMLxD31oCc+JoW5jo=</string>
+	<!-- Dupacode fork: never pull updates from the stock Supacode appcast. -->
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
 	<key>SUAutomaticallyUpdate</key>
-	<true/>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>sh.supacode.deeplink</string>
+			<string>sh.dupacode.deeplink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>supacode</string>
+				<string>dupacode</string>
 			</array>
 		</dict>
 	</array>

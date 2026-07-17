@@ -605,7 +605,8 @@ final class GhosttyRuntime {
   }
 
   private static func loadBundledOverrides(into config: ghostty_config_t) {
-    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("supacode-defaults.conf")
+    // Dupacode fork: distinct filename — $TMPDIR is shared with a running stock Supacode.
+    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("dupacode-defaults.conf")
     let contents = [bundledOverridesString, terminalProgramOverrides(version: appVersion)]
       .joined(separator: "\n")
     do {
@@ -633,7 +634,7 @@ final class GhosttyRuntime {
       background-opacity = 0.9
       background-blur = true
       """
-    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("supacode-theme.conf")
+    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("dupacode-theme.conf")
     do {
       try contents.write(to: tempURL, atomically: true, encoding: .utf8)
     } catch {

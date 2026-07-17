@@ -2,8 +2,9 @@ import Foundation
 
 public nonisolated enum SupacodePaths {
   public static var baseDirectory: URL {
+    // Dupacode fork: separate state root so a running stock Supacode is never touched.
     FileManager.default.homeDirectoryForCurrentUser
-      .appending(path: ".supacode", directoryHint: .isDirectory)
+      .appending(path: ".dupacode", directoryHint: .isDirectory)
   }
 
   public static var reposDirectory: URL {

@@ -23,7 +23,8 @@ nonisolated enum SocketDiscovery {
   /// Throws when the directory exists but cannot be read (e.g. permission denied).
   static func listAll() throws -> [String] {
     let uid = getuid()
-    let directory = "/tmp/supacode-\(uid)"
+    // Dupacode fork: separate socket dir so the stock Supacode CLI never targets this app.
+    let directory = "/tmp/dupacode-\(uid)"
     let entries: [String]
     do {
       entries = try FileManager.default.contentsOfDirectory(atPath: directory)

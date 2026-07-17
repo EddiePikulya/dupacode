@@ -124,7 +124,7 @@ func testBundle(name: String, sources: [SourceFileGlob]) -> Target {
     settings: .settings(
       base: [
         "BUNDLE_LOADER": "$(TEST_HOST)",
-        "TEST_HOST": "$(BUILT_PRODUCTS_DIR)/supacode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/supacode",
+        "TEST_HOST": "$(BUILT_PRODUCTS_DIR)/Dupacode.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dupacode",
       ],
       defaultSettings: .essential
     )
@@ -265,7 +265,7 @@ let project = Project(
       name: "supacode",
       destinations: .macOS,
       product: .app,
-      bundleId: "app.supabit.supacode",
+      bundleId: "app.supabit.dupacode",
       deploymentTargets: .macOS("26.0"),
       infoPlist: .file(path: "supacode/Info.plist"),
       resources: appResources,
@@ -301,6 +301,7 @@ let project = Project(
         base: [
           "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
           "ENABLE_HARDENED_RUNTIME": "YES",
+          "PRODUCT_NAME": "Dupacode",
           "LD_RUNPATH_SEARCH_PATHS": "$(inherited) @executable_path/../Frameworks",
           "OTHER_LDFLAGS": "$(inherited) -lc++",
         ],

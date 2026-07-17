@@ -38,7 +38,8 @@ final class AgentHookSocketServer {
     } else {
       let uid = getuid()
       let pid = ProcessInfo.processInfo.processIdentifier
-      directory = "/tmp/supacode-\(uid)"
+      // Dupacode fork: keep sockets out of stock Supacode's /tmp/supacode-<uid> dir.
+      directory = "/tmp/dupacode-\(uid)"
       path = "\(directory)/pid-\(pid)"
     }
 
