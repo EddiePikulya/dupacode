@@ -645,29 +645,8 @@ struct WorktreeDetailView: View {
 
       ToolbarSpacer(.flexible)
 
-      ToolbarItem {
-        openMenu(openActionSelection: toolbarState.openActionSelection)
-          // Rebuild the NSMenu when the host/selection changes so per-item
-          // `.disabled` gates don't go stale across a worktree switch.
-          .id(toolbarState.openMenuIdentity)
-          .transaction { $0.animation = nil }
-      }
-      ToolbarSpacer(.fixed)
-
-      ToolbarItem {
-        ScriptMenu(
-          toolbarState: toolbarState,
-          onRunScript: onRunScript,
-          onRunNamedScript: onRunNamedScript,
-          onStopScript: onStopScript,
-          onStopRunScripts: onStopRunScripts,
-          onManageRepoScripts: onManageRepoScripts,
-          onManageGlobalScripts: onManageGlobalScripts
-        )
-        // Rebuild the NSMenu when any field changes (#280) so renames propagate without a worktree switch.
-        .id(toolbarState.scriptMenuIdentity)
-        .transaction { $0.animation = nil }
-      }
+      // Dupacode fork: open-in-editor and run-script toolbar buttons removed;
+      // both remain reachable via the menu bar and keyboard shortcuts.
 
       TrailingStatusToolbarContent(
         pullRequest: toolbarState.pullRequest,
@@ -1065,24 +1044,7 @@ private struct ToolbarPlaceholderContent: ToolbarContent {
 
     ToolbarSpacer(.flexible)
 
-    ToolbarItemGroup {
-      Button {
-      } label: {
-        Image(systemName: "doc.text")
-      }
-      .redacted(reason: .placeholder)
-      .shimmer(isActive: true)
-    }
-    ToolbarSpacer(.fixed)
-
-    ToolbarItem {
-      Button {
-      } label: {
-        Image(systemName: "play")
-      }
-      .redacted(reason: .placeholder)
-      .shimmer(isActive: true)
-    }
+    // Dupacode fork: no skeletons for the removed open-in-editor / run buttons.
 
     if includesStatusSkeleton {
       ToolbarItemGroup {

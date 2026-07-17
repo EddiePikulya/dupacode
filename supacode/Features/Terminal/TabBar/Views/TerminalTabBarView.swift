@@ -32,11 +32,8 @@ struct TerminalTabBarView: View {
         renameTab: renameTab,
       )
       Spacer(minLength: 0)
-      TerminalTabBarTrailingAccessories(
-        createTab: createTab,
-        split: split,
-        canSplit: canSplit
-      )
+      // Dupacode fork: new-tab and split buttons removed; the keyboard
+      // shortcuts and menu bar items still cover both.
     }
     .frame(height: TerminalTabBarMetrics.barHeight)
     .saturation(controlActiveState == .inactive ? 0 : 1)
