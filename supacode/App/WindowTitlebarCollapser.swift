@@ -41,11 +41,8 @@ final class WindowTitlebarCollapserView: NSView {
     }
   }
 
-  deinit {
-    if let observer {
-      NotificationCenter.default.removeObserver(observer)
-    }
-  }
+  // No deinit cleanup: `viewDidMoveToWindow` removes the observer whenever the
+  // view detaches, and the view otherwise lives as long as the main window.
 
   func collapseTitlebar() {
     guard let window else { return }
