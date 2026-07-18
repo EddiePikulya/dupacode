@@ -73,8 +73,10 @@ struct WorktreeDetailView: View {
     .toolbar(removing: .title)
     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     .toolbar {
-      if hasActiveWorktree, let selectedWorktree {
-        ToolbarItem {
+      // Always emit an item: a toolbar that is empty at window creation is
+      // never re-installed by SwiftUI, so late-appearing items would vanish.
+      ToolbarItem {
+        if hasActiveWorktree, let selectedWorktree {
           WorktreeToolbarTabBarView(
             worktree: selectedWorktree,
             manager: terminalManager,
@@ -82,9 +84,11 @@ struct WorktreeDetailView: View {
             createTab: { store.send(.newTerminal) }
           )
           .id(selectedWorktree.id)
+        } else {
+          Color.clear.frame(width: 1, height: 1)
         }
-        .sharedBackgroundVisibility(.hidden)
       }
+      .sharedBackgroundVisibility(.hidden)
     }
     .inspector(
       isPresented: Binding(
