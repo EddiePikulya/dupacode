@@ -145,3 +145,4 @@ private struct TerminalSplitTreePane: View {
       }
     )
   }
+}
