@@ -104,7 +104,16 @@ a focused commit on the `dupacode` branch so `git merge upstream/main` stays pai
 fork change touches a new file, add it to the watch list in
 `.github/scripts/upstream-digest.sh`.
 
-## Syncing with upstream
+## Updates: weekly upstream review
+
+Dupacode tracks upstream Supacode deliberately, not automatically. Every week the
+`Upstream digest` GitHub Action (Mondays, or manual dispatch) opens an issue summarizing every
+upstream commit not yet merged here — new features, fixes, fresh release tags — and flags the
+ones that touch fork-modified files (merge-conflict risk). The changes that make sense for
+Dupacode get merged and shipped; the ones that fight its design (e.g. toolbar redesigns) get
+skipped or adapted. Quiet upstream weeks produce no issue.
+
+Applying an update:
 
 ```bash
 git fetch upstream            # upstream = https://github.com/supabitapp/supacode
@@ -112,8 +121,14 @@ git merge upstream/main       # usually clean; conflicts only in fork-modified f
 make build-app
 ```
 
-The `Upstream digest` workflow (Mondays, or manual dispatch) opens an issue summarizing what's
-new upstream and which commits touch fork-modified files.
+## Contributing
+
+Anyone is welcome to contribute — issues, ideas, and pull requests alike. This is a personal
+fork with strong UI opinions, so the bar for a change is "does it keep the terminal maximal and
+the chrome minimal", but if that sounds like your kind of terminal, come on in. For changes to
+the underlying app rather than the fork's chrome, consider contributing them
+[upstream](https://github.com/supabitapp/supacode) so everyone benefits — this fork happily
+inherits them through the weekly digest.
 
 ## Technical stack
 
