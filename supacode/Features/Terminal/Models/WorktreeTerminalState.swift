@@ -1557,6 +1557,12 @@ final class WorktreeTerminalState {
     // re-export a different value from .zshrc / .zprofile and silently
     // overflow `sockaddr_un.sun_path` past the probe's check.
     env["ZMX_DIR"] = ZmxSocketBudget.socketDir()
+    // Dupacode fork: neutralize zmx session markers the app may have inherited
+    // from a host terminal (e.g. launched via `open` from a stock Supacode
+    // shell). A foreign ZMX_SESSION sends `zmx attach` down the switch-session
+    // path, which fails with "session does not exist" in our dmx socket dir.
+    env["ZMX_SESSION"] = ""
+    env["ZMX_SESSION_PREFIX"] = ""
     // Prepend the bundled CLI binary directory to PATH so that `supacode`
     // resolves to the CLI tool, not the app binary added by Ghostty.
     if let cliBinDir = Bundle.main.resourceURL?

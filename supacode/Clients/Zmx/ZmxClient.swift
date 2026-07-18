@@ -214,6 +214,10 @@ extension ZmxClient {
       // after the separator fix in `socketDir`.
       var env = ProcessInfo.processInfo.environment
       env["ZMX_DIR"] = ZmxSocketBudget.socketDir(env: env)
+      // Dupacode fork: see scriptEnvironment — inherited session markers must
+      // not leak into zmx subprocesses either.
+      env["ZMX_SESSION"] = ""
+      env["ZMX_SESSION_PREFIX"] = ""
       return await runProcess(
         invocation: (executableURL: executable, arguments: arguments),
         environment: env,
