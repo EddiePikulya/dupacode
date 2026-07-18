@@ -173,5 +173,32 @@ struct WorktreeToolbarTabBarView: View {
       }
     }
     .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
+    .background(ToolbarFrameProbe())
   }
 }
+
+#if DEBUG
+  /// DIAGNOSTIC: logs the toolbar item's real AppKit frame and superview chain
+  /// so we can see where the hosted view is zeroed, hidden, or clipped.
+  private struct ToolbarFrameProbe: NSViewRepresentable {
+    func makeNSView(context: Context) -> ProbeView { ProbeView() }
+    func updateNSView(_ nsView: ProbeView, context: Context) {}
+
+    final class ProbeView: NSView {
+      override func layout() {
+        super.layout()
+        let chain = sequence(first: self as NSView) { $0.superview }
+          .map { "\(type(of: $0))\($0.frame.integral.debugDescription) h=\($0.isHidden ? 1 : 0) a=\(String(format: "%.1f", $0.alphaValue))" }
+          .joined(separator: " <- ")
+        SupaLogger("DetailRender").info("PROBE chain: \(chain)")
+        if let w = window {
+          SupaLogger("DetailRender").info(
+            "PROBE window: frame=\(w.frame.integral.debugDescription) toolbarVisible=\(w.toolbar?.isVisible ?? false) items=\(w.toolbar?.items.map(\.itemIdentifier.rawValue) ?? [])"
+          )
+        } else {
+          SupaLogger("DetailRender").info("PROBE: no window")
+        }
+      }
+    }
+  }
+#endif
