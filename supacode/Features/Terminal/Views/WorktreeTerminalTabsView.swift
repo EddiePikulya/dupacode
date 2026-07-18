@@ -157,7 +157,11 @@ struct WorktreeToolbarTabBarView: View {
           state.renameTab(tabId, title: newTitle)
         },
       )
-      .frame(maxWidth: .infinity, alignment: .leading)
+      // DIAGNOSTIC: tinted backdrop — if the red strip shows but no tabs, the
+      // item renders and the tab bar itself collapses; if no red, the toolbar
+      // item is not being placed at all.
+      .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
+      .background(Color.red.opacity(0.3))
     }
   }
 }
