@@ -63,6 +63,11 @@ struct WorktreeDetailView: View {
     // Dupacode fork: the terminal tab bar renders inside the window toolbar
     // strip (where the worktree title block used to be), so the strip's height
     // carries the tabs and the content below is pure terminal.
+    #if DEBUG
+      let _ = detailRenderLogger.info(
+        "toolbar eval: hasActiveWorktree=\(hasActiveWorktree) selected=\(selectedWorktree?.id.rawValue ?? "nil")"
+      )
+    #endif
     let content = detailContent(
       repositories: repositories,
       loadingInfo: loadingInfo,

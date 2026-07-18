@@ -128,6 +128,11 @@ struct WorktreeToolbarTabBarView: View {
 
   var body: some View {
     let state = manager.state(for: worktree) { false }
+    #if DEBUG
+      let _ = SupaLogger("DetailRender").info(
+        "WorktreeToolbarTabBarView body: hideTabBar=\(state.shouldHideTabBar) tabs=\(state.tabManager.tabs.count)"
+      )
+    #endif
     // DIAGNOSTIC: unconditional backdrop — red visible means the toolbar item
     // is placed; green stripe means the hide-tab-bar branch fired.
     ZStack(alignment: .leading) {
