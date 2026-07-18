@@ -554,20 +554,8 @@ struct WorktreeDetailView: View {
 
     var body: some ToolbarContent {
       if showsToolbarPlaceholder {
-        ToolbarPlaceholderContent(scheme: scheme, includesStatusSkeleton: !showsLoadingWorktree)
-        if showsLoadingWorktree {
-          TrailingStatusToolbarContent(
-            pullRequest: WorktreeDetailView.inspectorPullRequest(
-              selectedWorktree: selectedWorktree,
-              selectedRow: selectedRow
-            ),
-            repositoriesStore: repositoriesStore,
-            terminalManager: terminalManager,
-            inspectorPane: inspectorPane,
-            inspectorPresented: inspectorPresented,
-            onActivateInspector: { repositoriesStore.send(.toggleInspectorPane($0)) }
-          )
-        }
+        // Dupacode fork: no trailing inspector toggles in any toolbar state.
+        ToolbarPlaceholderContent(scheme: scheme, includesStatusSkeleton: false)
       } else if hasActiveWorktree, let selectedWorktree {
         let titleContent = WorktreeDetailView.makeToolbarTitleContent(
           selectedWorktree: selectedWorktree,
@@ -645,17 +633,8 @@ struct WorktreeDetailView: View {
 
       ToolbarSpacer(.flexible)
 
-      // Dupacode fork: open-in-editor and run-script toolbar buttons removed;
-      // both remain reachable via the menu bar and keyboard shortcuts.
-
-      TrailingStatusToolbarContent(
-        pullRequest: toolbarState.pullRequest,
-        repositoriesStore: repositoriesStore,
-        terminalManager: terminalManager,
-        inspectorPane: inspectorPane,
-        inspectorPresented: inspectorPresented,
-        onActivateInspector: onActivateInspector
-      )
+      // Dupacode fork: open-in-editor, run-script, and inspector-toggle toolbar
+      // buttons removed; all remain reachable via menu bar and keyboard shortcuts.
     }
 
     @ViewBuilder
@@ -1046,23 +1025,7 @@ private struct ToolbarPlaceholderContent: ToolbarContent {
 
     // Dupacode fork: no skeletons for the removed open-in-editor / run buttons.
 
-    if includesStatusSkeleton {
-      ToolbarItemGroup {
-        // Mirror the trailing inspector toggles (git status + notifications).
-        Button {
-        } label: {
-          Image(systemName: "arrow.trianglehead.branch")
-        }
-        .redacted(reason: .placeholder)
-        .shimmer(isActive: true)
-        Button {
-        } label: {
-          Image(systemName: "bell")
-        }
-        .redacted(reason: .placeholder)
-        .shimmer(isActive: true)
-      }
-    }
+    // Dupacode fork: inspector-toggle skeletons removed with the real toggles.
   }
 }
 
