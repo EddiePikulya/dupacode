@@ -1,5 +1,6 @@
 import AppKit
 import ComposableArchitecture
+import SupacodeSettingsShared
 import SwiftUI
 
 struct WorktreeTerminalTabsView: View {
