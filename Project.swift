@@ -146,8 +146,8 @@ let embedRuntimeAssetsInputPaths: [FileListGlob] = [
   "$(SRCROOT)/\(zmxBinaryPath.pathString)",
   "$(SRCROOT)/supacode/Resources/Themes/Supacode Light",
   "$(SRCROOT)/supacode/Resources/Themes/Supacode Dark",
-  "$(BUILT_PRODUCTS_DIR)/supacode",
-  "$(UNINSTALLED_PRODUCTS_DIR)/$(PLATFORM_NAME)/supacode",
+  "$(BUILT_PRODUCTS_DIR)/dupacode",
+  "$(UNINSTALLED_PRODUCTS_DIR)/$(PLATFORM_NAME)/dupacode",
 ]
 
 let embedRuntimeAssetsOutputPaths: [Path] = [
@@ -155,7 +155,7 @@ let embedRuntimeAssetsOutputPaths: [Path] = [
   "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/zmx/zmx",
   "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Supacode Light",
   "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Supacode Dark",
-  "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/bin/supacode",
+  "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/bin/dupacode",
 ]
 
 let project = Project(
@@ -181,7 +181,7 @@ let project = Project(
       name: "supacode-cli",
       destinations: .macOS,
       product: .commandLineTool,
-      bundleId: "app.supabit.supacode.cli",
+      bundleId: "app.supabit.dupacode.cli",
       deploymentTargets: .macOS("26.0"),
       infoPlist: .default,
       buildableFolders: [
@@ -195,7 +195,9 @@ let project = Project(
           "CODE_SIGNING_ALLOWED": "NO",
           "ENABLE_HARDENED_RUNTIME": "YES",
           "PRODUCT_MODULE_NAME": "supacode_cli",
-          "PRODUCT_NAME": "supacode",
+          // Dupacode fork: the CLI command is `dupacode`, never colliding with
+          // a stock Supacode install.
+          "PRODUCT_NAME": "dupacode",
           "SKIP_INSTALL": "YES",
           "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
         ],

@@ -1563,7 +1563,7 @@ final class WorktreeTerminalState {
     // path, which fails with "session does not exist" in our dmx socket dir.
     env["ZMX_SESSION"] = ""
     env["ZMX_SESSION_PREFIX"] = ""
-    // Prepend the bundled CLI binary directory to PATH so that `supacode`
+    // Prepend the bundled CLI binary directory to PATH so that `dupacode`
     // resolves to the CLI tool, not the app binary added by Ghostty.
     if let cliBinDir = Bundle.main.resourceURL?
       .appending(path: "bin", directoryHint: .isDirectory)
