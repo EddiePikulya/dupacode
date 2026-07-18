@@ -629,10 +629,11 @@ final class GhosttyRuntime {
       logger.warning("Bundled Supacode themes missing from app bundle.")
       return
     }
+    // Dupacode fork: fully opaque background, no blur.
     let contents = """
       theme = light:\(lightPath),dark:\(darkPath)
-      background-opacity = 0.9
-      background-blur = true
+      background-opacity = 1
+      background-blur = false
       """
     let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("dupacode-theme.conf")
     do {
