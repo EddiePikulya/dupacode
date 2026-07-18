@@ -15,10 +15,6 @@ struct WorktreeDetailView: View {
   let terminalManager: WorktreeTerminalManager
   @Shared(.appStorage("worktreeRowHideSubtitleOnMatch")) private var hideSubtitleOnMatch = true
   @Shared(.settingsFile) private var settingsFile: SettingsFile
-  // Dupacode fork: measured width of the detail content, fed to the toolbar
-  // tab bar as an explicit frame — toolbar items size to their content's ideal
-  // width, and the GeometryReader-based tab bar has none of its own.
-  @State private var detailWidth: CGFloat = 0
   private var agentBadgesEnabled: Bool { settingsFile.global.agentPresenceBadgesEnabled }
 
   var body: some View {
@@ -45,6 +41,12 @@ struct WorktreeDetailView: View {
       selectedWorktreeID: repositories.selectedWorktreeID,
       repositories: repositories
     )
+    let showsToolbarPlaceholder = shouldShowToolbarPlaceholder(
+      repositories: repositories,
+      loadingInfo: loadingInfo,
+      selectedWorktree: selectedWorktree,
+      selectedWorktreeSummaries: selectedWorktreeSummaries
+    )
     let hasActiveWorktree =
       selectedWorktree != nil
       && loadingInfo == nil
@@ -64,14 +66,10 @@ struct WorktreeDetailView: View {
       selectedRow: selectedRow,
       repositories: repositories
     )
-    // Dupacode fork: the terminal tab bar renders inside the window toolbar
-    // strip (where the worktree title block used to be), so the strip's height
-    // carries the tabs and the content below is pure terminal.
-    #if DEBUG
-      let _ = detailRenderLogger.info(
-        "toolbar eval: hasActiveWorktree=\(hasActiveWorktree) selected=\(selectedWorktree?.id.rawValue ?? "nil")"
-      )
-    #endif
+    // Read the manager's stored color here (tracked body evaluation, not the
+    // deferred toolbar closure) so the toolbar scheme invalidates on change.
+    let toolbarScheme: ColorScheme =
+      terminalManager.focusedSurfaceBackground.isLightColor ? .light : .dark
     let content = detailContent(
       repositories: repositories,
       loadingInfo: loadingInfo,
@@ -79,36 +77,25 @@ struct WorktreeDetailView: View {
       selectedSlice: selectedRow,
       selectedWorktreeSummaries: selectedWorktreeSummaries
     )
-    .onGeometryChange(for: CGFloat.self) { proxy in
-      proxy.size.width
-    } action: { newWidth in
-      detailWidth = newWidth
-    }
     .toolbar(removing: .title)
     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     .toolbar {
-      // Always emit an item: a toolbar that is empty at window creation is
-      // never re-installed by SwiftUI, so late-appearing items would vanish.
-      // .navigation is the placement the stock title item demonstrably used.
-      ToolbarItem(placement: .navigation) {
-        if hasActiveWorktree, let selectedWorktree {
-          WorktreeToolbarTabBarView(
-            worktree: selectedWorktree,
-            manager: terminalManager,
-            terminalsStore: store.scope(state: \.terminals, action: \.terminals),
-            createTab: { store.send(.newTerminal) }
-          )
-          .frame(
-            width: max(detailWidth - 16, 240),
-            height: TerminalTabBarMetrics.barHeight,
-            alignment: .leading
-          )
-          .id(selectedWorktree.id)
-        } else {
-          Color.clear.frame(width: 1, height: 1)
-        }
-      }
-      .sharedBackgroundVisibility(.hidden)
+      WorktreeDetailToolbar(
+        store: store,
+        terminalManager: terminalManager,
+        repositoriesStore: repositoriesStore,
+        scheme: toolbarScheme,
+        showsToolbarPlaceholder: showsToolbarPlaceholder,
+        showsLoadingWorktree: showsToolbarPlaceholder && loadingInfo != nil,
+        hasActiveWorktree: hasActiveWorktree,
+        selectedWorktree: selectedWorktree,
+        selectedRow: selectedRow,
+        repositories: repositories,
+        hideSubtitleOnMatch: hideSubtitleOnMatch,
+        inspectorPane: inspectorPane,
+        inspectorPresented: inspectorPresented,
+        onSelectNotification: selectToolbarNotification
+      )
     }
     .inspector(
       isPresented: Binding(

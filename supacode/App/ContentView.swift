@@ -20,9 +20,6 @@ struct ContentView: View {
   let terminalManager: WorktreeTerminalManager
   @Environment(\.scenePhase) private var scenePhase
   @Environment(GhosttyShortcutManager.self) private var ghosttyShortcuts
-  // Dupacode fork: always .all — no toggle UI exists. Kept as real @State (not
-  // .constant) because a constant column-visibility binding broke detail-column
-  // toolbar item installation.
   @State private var leftSidebarVisibility: NavigationSplitViewVisibility = .all
 
   init(store: StoreOf<AppFeature>, terminalManager: WorktreeTerminalManager) {
@@ -35,12 +32,10 @@ struct ContentView: View {
     #if DEBUG
       let _ = contentRenderLogger.info("ContentView.body re-rendered")
     #endif
-    // Dupacode fork: the sidebar is always visible (no toggle); the terminal
-    // tab bar renders inside the window toolbar strip (see WorktreeDetailView),
-    // so the strip's height is useful instead of wasted.
     return NavigationSplitView(columnVisibility: $leftSidebarVisibility) {
       SidebarView(store: repositoriesStore, terminalManager: terminalManager)
         .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
+        // Dupacode fork: sidebar is always visible; no toggle button or menu.
         .toolbar(removing: .sidebarToggle)
         .safeAreaInset(edge: .bottom, spacing: 0) {
           SidebarBottomCardView(store: store)
@@ -118,6 +113,9 @@ struct ContentView: View {
       \.revealInSidebarAction,
       enabled: repositoriesStore.selectedWorktreeID != nil
     ) {
+      withAnimation(.easeOut(duration: 0.2)) {
+        leftSidebarVisibility = .all
+      }
       store.send(.repositories(.revealSelectedWorktreeInSidebar))
     }
     .focusedSceneAction(
