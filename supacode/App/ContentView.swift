@@ -41,6 +41,9 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
           SidebarBottomCardView(store: store)
         }
+        // Rise to the window top so the traffic lights sit inside the sidebar
+        // panel's top row, matching the stock look (minus the toggle button).
+        .ignoresSafeArea(.container, edges: .top)
     } detail: {
       WorktreeDetailView(store: store, terminalManager: terminalManager)
         .ignoresSafeArea(.container, edges: .top)

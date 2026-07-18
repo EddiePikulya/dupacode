@@ -62,7 +62,7 @@ struct SidebarView: View {
         .help("Add Repository, Folder, or Remote")
         .padding(.trailing, 10)
       }
-      .frame(height: 28)
+      .frame(height: 38)
     }
     .sheet(item: $store.scope(state: \.remoteConnectionForm, action: \.remoteConnectionForm)) { formStore in
       RemoteConnectionFormView(store: formStore)
