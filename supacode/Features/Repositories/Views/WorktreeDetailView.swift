@@ -25,6 +25,20 @@ struct WorktreeDetailView: View {
   @State private var detailWidth: CGFloat = 0
   private var agentBadgesEnabled: Bool { settingsFile.global.agentPresenceBadgesEnabled }
 
+  /// The full titlebar strip row: Add menu at the leading edge (right of the
+  /// traffic lights), tabs right-aligned spanning the detail column width.
+  private func titlebarStrip(state: WorktreeTerminalState?) -> some View {
+    HStack(spacing: 8) {
+      AddRepositoryMenu(store: store.scope(state: \.repositories, action: \.repositories))
+      Spacer(minLength: 8)
+      if let state {
+        titlebarTabBar(state: state)
+          .frame(width: max(detailWidth, 0), alignment: .leading)
+      }
+    }
+    .frame(maxHeight: .infinity)
+  }
+
   /// The tab bar hosted in the titlebar accessory. NSHostingView inherits no
   /// SwiftUI environment, so the required observables are injected explicitly.
   private func titlebarTabBar(state: WorktreeTerminalState) -> some View {
@@ -115,13 +129,8 @@ struct WorktreeDetailView: View {
       detailWidth = newWidth
     }
     .background(
-      TitlebarTabBarAccessory(
-        width: detailWidth,
-        height: TerminalTabBarMetrics.barHeight
-      ) {
-        if let toolbarTerminalState {
-          titlebarTabBar(state: toolbarTerminalState)
-        }
+      TitlebarTabBarAccessory(height: TerminalTabBarMetrics.barHeight) {
+        titlebarStrip(state: toolbarTerminalState)
       }
     )
     .inspector(

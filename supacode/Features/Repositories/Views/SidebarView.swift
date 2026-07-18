@@ -15,48 +15,13 @@ struct SidebarView: View {
     // observation-track every row and fan per-leaf ticks out to the whole List.
     let archiveTargets = state.sidebarSelectionSlice.archiveTargets
     let deleteTargets = state.sidebarSelectionSlice.deleteTargets
-    let openRepo = AppShortcuts.openRepository.effective(from: settingsFile.global.shortcutOverrides)
-
     return SidebarListView(
       store: store,
       terminalManager: terminalManager
     )
-    .toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        Menu {
-          Button {
-            store.send(.setOpenPanelPresented(true))
-          } label: {
-            Label("Local Repository or Folder…", systemImage: "laptopcomputer")
-          }
-          .help("Add a local repository or folder (\(openRepo?.display ?? "none"))")
-          Button {
-            store.send(.requestAddRemoteRepository)
-          } label: {
-            Label("Remote Repository or Folder…", systemImage: "wifi")
-          }
-          .help("Add a repository or folder on an SSH host")
-          Divider()
-          Button {
-            store.send(.requestCloneRepository)
-          } label: {
-            Label("Clone Repository…", systemImage: "square.and.arrow.down.on.square")
-          }
-          .help("Clone a remote repository into a local folder")
-        } label: {
-          Label {
-            Text("Add…")
-          } icon: {
-            Image(systemName: "folder.badge.plus")
-              .offset(y: -1)
-              .accessibilityHidden(true)
-          }
-        }
-        .menuIndicator(.hidden)
-        .labelStyle(.iconOnly)
-        .help("Add Repository, Folder, or Remote")
-      }
-    }
+    // Dupacode fork: the Add menu lives in the titlebar strip
+    // (`AddRepositoryMenu` hosted by TitlebarTabBarAccessory), not a toolbar —
+    // the window has no NSToolbar so the strip is a single row.
     .sheet(item: $store.scope(state: \.remoteConnectionForm, action: \.remoteConnectionForm)) { formStore in
       RemoteConnectionFormView(store: formStore)
     }
@@ -90,5 +55,51 @@ struct SidebarView: View {
     ) {
       store.send(.requestDeleteSidebarItems(deleteTargets))
     }
+  }
+}
+
+/// Dupacode fork: the add-repository menu, hosted in the titlebar strip next
+/// to the traffic lights (see TitlebarTabBarAccessory). Extracted from the
+/// former sidebar toolbar item.
+struct AddRepositoryMenu: View {
+  let store: StoreOf<RepositoriesFeature>
+  @Shared(.settingsFile) private var settingsFile
+
+  var body: some View {
+    let openRepo = AppShortcuts.openRepository.effective(from: settingsFile.global.shortcutOverrides)
+    Menu {
+      Button {
+        store.send(.setOpenPanelPresented(true))
+      } label: {
+        Label("Local Repository or Folder…", systemImage: "laptopcomputer")
+      }
+      .help("Add a local repository or folder (\(openRepo?.display ?? "none"))")
+      Button {
+        store.send(.requestAddRemoteRepository)
+      } label: {
+        Label("Remote Repository or Folder…", systemImage: "wifi")
+      }
+      .help("Add a repository or folder on an SSH host")
+      Divider()
+      Button {
+        store.send(.requestCloneRepository)
+      } label: {
+        Label("Clone Repository…", systemImage: "square.and.arrow.down.on.square")
+      }
+      .help("Clone a remote repository into a local folder")
+    } label: {
+      Label {
+        Text("Add…")
+      } icon: {
+        Image(systemName: "folder.badge.plus")
+          .offset(y: -1)
+          .accessibilityHidden(true)
+      }
+    }
+    .menuIndicator(.hidden)
+    .labelStyle(.iconOnly)
+    .menuStyle(.borderlessButton)
+    .fixedSize()
+    .help("Add Repository, Folder, or Remote")
   }
 }
