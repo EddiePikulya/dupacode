@@ -60,8 +60,9 @@ struct WorktreeDetailView: View {
       selectedRow: selectedRow,
       repositories: repositories
     )
-    // Dupacode fork: the window toolbar is gone entirely (ContentView hides
-    // it for the whole window); the tab bar is the topmost element.
+    // Dupacode fork: the terminal tab bar renders inside the window toolbar
+    // strip (where the worktree title block used to be), so the strip's height
+    // carries the tabs and the content below is pure terminal.
     let content = detailContent(
       repositories: repositories,
       loadingInfo: loadingInfo,
@@ -69,6 +70,22 @@ struct WorktreeDetailView: View {
       selectedSlice: selectedRow,
       selectedWorktreeSummaries: selectedWorktreeSummaries
     )
+    .toolbar(removing: .title)
+    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+    .toolbar {
+      if hasActiveWorktree, let selectedWorktree {
+        ToolbarItem(placement: .principal) {
+          WorktreeToolbarTabBarView(
+            worktree: selectedWorktree,
+            manager: terminalManager,
+            terminalsStore: store.scope(state: \.terminals, action: \.terminals),
+            createTab: { store.send(.newTerminal) }
+          )
+          .id(selectedWorktree.id)
+        }
+        .sharedBackgroundVisibility(.hidden)
+      }
+    }
     .inspector(
       isPresented: Binding(
         get: { inspectorPresented },

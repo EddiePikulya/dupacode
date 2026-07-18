@@ -504,10 +504,6 @@ struct SupacodeApp: App {
       .openSettingsOnSelection(store: store)
       .openDeeplinkReferenceOnRequest(store: store)
     }
-    // Dupacode fork: hidden-titlebar window style — content is full-bleed and
-    // the titlebar region becomes ignorable safe area; the tab bar and sidebar
-    // rise to the window top (see ContentView).
-    .windowStyle(.hiddenTitleBar)
     .handlesExternalEvents(matching: [])
     .environment(ghosttyShortcuts)
     .environment(commandKeyObserver)
