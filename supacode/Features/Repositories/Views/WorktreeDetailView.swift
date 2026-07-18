@@ -10,6 +10,13 @@ import SwiftUI
   private nonisolated let detailRenderLogger = SupaLogger("DetailRender")
 #endif
 
+/// DIAGNOSTIC: side-effect-free NSView, only to test whether representables
+/// inside toolbar items prevent mounting.
+private struct InertNSViewProbe: NSViewRepresentable {
+  func makeNSView(context: Context) -> NSView { NSView() }
+  func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
 struct WorktreeDetailView: View {
   @Bindable var store: StoreOf<AppFeature>
   let terminalManager: WorktreeTerminalManager
@@ -114,6 +121,12 @@ struct WorktreeDetailView: View {
       }
       ToolbarItem(placement: .navigation) {
         Color.yellow.opacity(0.6).frame(width: 40, height: 20)
+      }
+      // P3b: representable test — same simple view but with an NSView-backed
+      // background. If this one vanishes, NSViewRepresentable kills items.
+      ToolbarItem(placement: .navigation) {
+        Color.mint.opacity(0.8).frame(width: 40, height: 20)
+          .background(InertNSViewProbe())
       }
       ToolbarItem(placement: .navigation) {
         if hasActiveWorktree, let selectedWorktree {

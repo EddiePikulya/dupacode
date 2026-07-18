@@ -201,7 +201,6 @@ struct WorktreeToolbarTabBarView: View {
       }
     }
     .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
-    .background(ToolbarFrameProbe())
   }
 }
 
