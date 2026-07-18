@@ -101,26 +101,34 @@ struct WorktreeDetailView: View {
         inspectorPresented: inspectorPresented,
         onSelectNotification: selectToolbarNotification
       )
-      // DIAGNOSTIC bisect: canary proves custom items mount here; the tab bar
-      // item tests whether env injection fixes the silent drop.
+      // DIAGNOSTIC matrix: which of these mount tells us exactly what blocks
+      // the tab bar item. P1 unconditional text (proven), P2 text inside the
+      // conditional, P3 simple custom view, P4 tab bar with condition inside.
       ToolbarItem(placement: .navigation) {
-        Text("TB-PROBE")
-          .foregroundStyle(.red)
+        Text("P1").foregroundStyle(.red)
       }
-      if hasActiveWorktree, let selectedWorktree {
+      if hasActiveWorktree {
         ToolbarItem(placement: .navigation) {
+          Text("P2").foregroundStyle(.orange)
+        }
+      }
+      ToolbarItem(placement: .navigation) {
+        Color.yellow.opacity(0.6).frame(width: 40, height: 20)
+      }
+      ToolbarItem(placement: .navigation) {
+        if hasActiveWorktree, let selectedWorktree {
           WorktreeToolbarTabBarView(
             worktree: selectedWorktree,
             manager: terminalManager,
             terminalsStore: store.scope(state: \.terminals, action: \.terminals),
             createTab: { store.send(.newTerminal) }
           )
-          .frame(width: 700, alignment: .leading)
+          .frame(width: 600, alignment: .leading)
           .environment(ghosttyShortcuts)
           .environment(commandKeyObserver)
-          .id(selectedWorktree.id)
+        } else {
+          Text("P4-none").foregroundStyle(.purple)
         }
-        .sharedBackgroundVisibility(.hidden)
       }
     }
     .inspector(
