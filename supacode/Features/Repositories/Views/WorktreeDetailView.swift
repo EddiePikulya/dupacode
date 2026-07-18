@@ -128,8 +128,16 @@ struct WorktreeDetailView: View {
         Color.mint.opacity(0.8).frame(width: 40, height: 20)
           .background(InertNSViewProbe())
       }
+      // P4: bare horizontal ScrollView — the tab strip's container type.
       ToolbarItem(placement: .navigation) {
-        if hasActiveWorktree, let selectedWorktree {
+        ScrollView(.horizontal) {
+          HStack { Text("SCROLL-TEST").foregroundStyle(.cyan) }
+        }
+        .frame(width: 160, height: 24)
+      }
+      // P5: the real tab bar (probe removed from it last build).
+      if hasActiveWorktree, let selectedWorktree {
+        ToolbarItem(placement: .navigation) {
           WorktreeToolbarTabBarView(
             worktree: selectedWorktree,
             manager: terminalManager,
@@ -139,8 +147,6 @@ struct WorktreeDetailView: View {
           .frame(width: 600, alignment: .leading)
           .environment(ghosttyShortcuts)
           .environment(commandKeyObserver)
-        } else {
-          Text("P4-none").foregroundStyle(.purple)
         }
       }
     }
