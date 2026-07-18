@@ -24,7 +24,7 @@ struct TitlebarTabBarAccessory<Content: View>: NSViewRepresentable {
 
   final class AccessoryAnchorView: NSView {
     /// Horizontal room left for the traffic lights at the leading edge.
-    static let trafficLightsReserve: CGFloat = 78
+    private let trafficLightsReserve: CGFloat = 78
 
     private var accessory: NSTitlebarAccessoryViewController?
     private var pendingRoot: AnyView?
@@ -73,7 +73,7 @@ struct TitlebarTabBarAccessory<Content: View>: NSViewRepresentable {
     private func fitToWindow() {
       guard let window, let hosting = accessory?.view as? NSHostingView<AnyView> else { return }
       let size = NSSize(
-        width: max(window.frame.width - Self.trafficLightsReserve, 0),
+        width: max(window.frame.width - trafficLightsReserve, 0),
         height: pendingHeight
       )
       if hosting.frame.size != size, size.width > 0 {
