@@ -1,5 +1,6 @@
 import AppKit
 import ComposableArchitecture
+import SupacodeSettingsShared
 import SwiftUI
 
 struct WorktreeTerminalTabsView: View {
@@ -145,3 +146,87 @@ private struct TerminalSplitTreePane: View {
     )
   }
 }
+/// Dupacode fork: hosts the terminal tab bar inside the window toolbar strip
+/// (mounted from `WorktreeDetailView`), spending the old title-block height on
+/// tabs. Mirrors the wiring the in-content tab bar used to have above.
+struct WorktreeToolbarTabBarView: View {
+  let worktree: Worktree
+  let manager: WorktreeTerminalManager
+  let terminalsStore: StoreOf<TerminalsFeature>
+  let createTab: () -> Void
+
+  var body: some View {
+    let state = manager.state(for: worktree) { false }
+    #if DEBUG
+      let _ = SupaLogger("DetailRender").info(
+        "WorktreeToolbarTabBarView body: hideTabBar=\(state.shouldHideTabBar) tabs=\(state.tabManager.tabs.count)"
+      )
+    #endif
+    // DIAGNOSTIC: unconditional backdrop — red visible means the toolbar item
+    // is placed; green stripe means the hide-tab-bar branch fired.
+    ZStack(alignment: .leading) {
+      Color.red.opacity(0.35)
+        .frame(minWidth: 240, maxHeight: .infinity)
+      if state.shouldHideTabBar {
+        Color.green.opacity(0.5).frame(width: 60)
+      } else {
+        TerminalTabBarView(
+          manager: state.tabManager,
+          terminalState: state,
+          terminalsStore: terminalsStore,
+          createTab: createTab,
+          split: { direction in
+            _ = state.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
+          },
+          canSplit: state.tabManager.selectedTabId.flatMap { state.activeSurfaceID(for: $0) } != nil,
+          closeTab: { tabId in
+            state.closeTab(tabId)
+          },
+          closeOthers: { tabId in
+            state.closeOtherTabs(keeping: tabId)
+          },
+          closeToRight: { tabId in
+            state.closeTabsToRight(of: tabId)
+          },
+          closeAll: {
+            state.closeAllTabs()
+          },
+          dismissSplitZoom: { tabId in
+            state.dismissSplitZoom(for: tabId)
+          },
+          renameTab: { tabId, newTitle in
+            state.renameTab(tabId, title: newTitle)
+          },
+        )
+      }
+    }
+    .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
+    .background(ToolbarFrameProbe())
+  }
+}
+
+#if DEBUG
+  /// DIAGNOSTIC: logs the toolbar item's real AppKit frame and superview chain
+  /// so we can see where the hosted view is zeroed, hidden, or clipped.
+  private struct ToolbarFrameProbe: NSViewRepresentable {
+    func makeNSView(context: Context) -> ProbeView { ProbeView() }
+    func updateNSView(_ nsView: ProbeView, context: Context) {}
+
+    final class ProbeView: NSView {
+      override func layout() {
+        super.layout()
+        let chain = sequence(first: self as NSView) { $0.superview }
+          .map { "\(type(of: $0))\($0.frame.integral.debugDescription) h=\($0.isHidden ? 1 : 0) a=\(String(format: "%.1f", $0.alphaValue))" }
+          .joined(separator: " <- ")
+        SupaLogger("DetailRender").info("PROBE chain: \(chain)")
+        if let w = window {
+          SupaLogger("DetailRender").info(
+            "PROBE window: frame=\(w.frame.integral.debugDescription) toolbarVisible=\(w.toolbar?.isVisible ?? false) items=\(w.toolbar?.items.map(\.itemIdentifier.rawValue) ?? [])"
+          )
+        } else {
+          SupaLogger("DetailRender").info("PROBE: no window")
+        }
+      }
+    }
+  }
+#endif

@@ -15,6 +15,11 @@ struct WorktreeDetailView: View {
   let terminalManager: WorktreeTerminalManager
   @Shared(.appStorage("worktreeRowHideSubtitleOnMatch")) private var hideSubtitleOnMatch = true
   @Shared(.settingsFile) private var settingsFile: SettingsFile
+  // Dupacode fork: re-injected into the toolbar tab bar item — toolbar content
+  // does not inherit these Observable environments, and `@Environment(T.self)`
+  // failing inside item content makes AppKit silently drop the whole item.
+  @Environment(GhosttyShortcutManager.self) private var ghosttyShortcuts
+  @Environment(CommandKeyObserver.self) private var commandKeyObserver
   private var agentBadgesEnabled: Bool { settingsFile.global.agentPresenceBadgesEnabled }
 
   var body: some View {
@@ -96,6 +101,27 @@ struct WorktreeDetailView: View {
         inspectorPresented: inspectorPresented,
         onSelectNotification: selectToolbarNotification
       )
+      // DIAGNOSTIC bisect: canary proves custom items mount here; the tab bar
+      // item tests whether env injection fixes the silent drop.
+      ToolbarItem(placement: .navigation) {
+        Text("TB-PROBE")
+          .foregroundStyle(.red)
+      }
+      if hasActiveWorktree, let selectedWorktree {
+        ToolbarItem(placement: .navigation) {
+          WorktreeToolbarTabBarView(
+            worktree: selectedWorktree,
+            manager: terminalManager,
+            terminalsStore: store.scope(state: \.terminals, action: \.terminals),
+            createTab: { store.send(.newTerminal) }
+          )
+          .frame(width: 700, alignment: .leading)
+          .environment(ghosttyShortcuts)
+          .environment(commandKeyObserver)
+          .id(selectedWorktree.id)
+        }
+        .sharedBackgroundVisibility(.hidden)
+      }
     }
     .inspector(
       isPresented: Binding(
