@@ -41,14 +41,14 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
           SidebarBottomCardView(store: store)
         }
-        // Rise to the window top so the traffic lights sit inside the sidebar
-        // panel's top row, matching the stock look (minus the toggle button).
-        .ignoresSafeArea(.container, edges: .top)
     } detail: {
       WorktreeDetailView(store: store, terminalManager: terminalManager)
-        .ignoresSafeArea(.container, edges: .top)
     }
     .navigationSplitViewStyle(.automatic)
+    // The split view resolves the top safe area itself, so per-column ignores
+    // are no-ops; ignore at this level to rise into the collapsed titlebar.
+    // The traffic lights then float inside the sidebar panel's top row.
+    .ignoresSafeArea(.container, edges: .top)
     .background(WindowTitlebarCollapser())
     .disabled(!repositoriesStore.isInitialLoadComplete)
     .onChange(of: scenePhase) { _, newValue in
