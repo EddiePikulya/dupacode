@@ -357,9 +357,13 @@ nonisolated enum ZmxSocketBudget {
   /// so tests can drive inputs deterministically without depending on process
   /// state.
   static func socketDir(env: [String: String] = ProcessInfo.processInfo.environment) -> String {
-    if let custom = env["ZMX_DIR"], !custom.isEmpty {
-      return custom
-    }
+    // Dupacode fork: never honor an inherited ZMX_DIR. Stock Supacode exports
+    // ZMX_DIR into every terminal it hosts, and macOS `open` forwards the
+    // caller's environment — so launching Dupacode from a stock Supacode shell
+    // would silently drop this app back into the shared stock socket dir, the
+    // exact cross-talk the dmx namespace exists to prevent. This app pins
+    // ZMX_DIR itself for zmx subprocesses and wrapped shells, so nothing
+    // legitimate relies on the inherited value.
     let uid = getuid()
     // Dupacode fork: "dmx" dirs (same length as "zmx") so the sockets never
     // share a directory with a running stock Supacode. The app pins ZMX_DIR to
