@@ -1,72 +1,42 @@
-# Supacode
+# Dupacode
 
-**A native macOS command center for running coding agents in parallel.**
+**A personal fork of [Supacode](https://github.com/supabitapp/supacode) — a native macOS command
+center for running coding agents in parallel — with opinionated UI/UX changes for maximum
+terminal space.**
 
 Run several coding agents side by side from one window: each task gets its own git worktree and
 its own real terminal. Sessions persist in the background, so quitting the app or dropping an SSH
-connection loses nothing.
+connection loses nothing. All credit for the app itself goes to
+[Supabit](https://supacode.sh); this fork only reshapes the chrome.
 
-[supacode.sh](https://supacode.sh)
+## How Dupacode differs from Supacode
 
-<img width="3180" height="1788" alt="Supacode screenshot" src="https://github.com/user-attachments/assets/72a8dc95-020a-4dc2-9010-ba1adc9518ba" />
+- **Terminal tabs live in the titlebar.** The tab bar renders in the window's top strip (via an
+  AppKit titlebar accessory) next to the traffic lights, and the worktree title block is gone —
+  the terminal starts directly under the tabs and gains two full rows of height.
+- **Minimal chrome.** No toolbar buttons (open-in-editor, run script, inspector toggles), no
+  tab-bar new-tab/split buttons, no onboarding/announcement cards. Everything stays reachable
+  through the menu bar, keyboard shortcuts, and the command palette.
+- **Always-visible sidebar.** The sidebar cannot be collapsed; the toggle button, menu item, and
+  shortcut are removed. The add-repository menu sits in the titlebar strip.
+- **Your Ghostty config owns appearance.** Theme sync injects only the light/dark theme;
+  `background-opacity`, `background-blur`, fonts, and everything else come from your own
+  [Ghostty](https://ghostty.org) config (`~/.config/ghostty/config`) with normal reload
+  semantics. Unset means opaque.
+- **The CLI is `dupacode`.** Same commands as upstream's `supacode` CLI, different name.
+- **Fully isolated from a stock Supacode install.** Different bundle id (`app.supabit.dupacode`),
+  state root (`~/.dupacode`), IPC sockets (`/tmp/dupacode-<uid>`), zmx session namespace
+  (`dupa-*` in `dmx` socket dirs), and URL scheme (`dupacode://`). Both apps can run side by side
+  without touching each other's sessions or settings.
+- **No auto-updates.** Sparkle is disabled so the fork never updates itself into stock Supacode.
+  Updates come from merging upstream: a weekly GitHub Action posts an `upstream-digest` issue
+  summarizing unmerged upstream commits and flagging merge-conflict risks against fork-modified
+  files.
 
-## Features
-
-### Worktree-first workflow
-
-Each task gets its own git worktree and terminal, so agents run in parallel without colliding.
-Create one from the sidebar, a hotkey, the command palette, the CLI, or a deeplink. The sidebar
-refreshes branch, file, and pull request state live, nests rows by branch, and hoists the
-worktrees that need you (an agent awaiting input, a running script) to the top. Pin, archive,
-auto-delete after N days, and jump to any with ⌃1 to ⌃9.
-
-### Background session persistence
-
-Sessions run inside [zmx](https://zmx.sh), a lightweight session daemon, not as children of the
-app. Quit and relaunch, and every session reattaches exactly where you left it, scrollback
-included. On by default; a quit option tears everything down when you want a clean start.
-
-### Remote SSH repositories (Beta)
-
-Point Supacode at a repository on a remote host over SSH and it manages that repo's worktrees
-like a local one. Every git probe and the terminal share one multiplexed SSH connection, so you
-authenticate (or touch your security key) once. When the host has zmx, remote sessions survive
-dropped connections and laptop sleep: the connection retries and reattaches instead of
-restarting. Beta, with some local-only features reduced.
-
-### Folders and repositories
-
-Git repositories and plain folders are both first-class in the sidebar. A folder gets a real
-persistent terminal rooted there, with the same tabs, scripts, pinning, and appearance as a repo,
-minus the git-only tools. You can also clone a remote URL straight into a folder.
-
-### Coding agent presence
-
-Supacode detects the agent in each pane and shows a live badge: busy, awaiting input, or idle. It
-supports the common agents (Claude, Codex, Copilot) through hooks it installs, works locally and
-over SSH, and drives notifications so you know the moment an agent needs you.
-
-### The CLI and deeplinks
-
-Drive the app from any terminal, script, or other tool. The `supacode` CLI manages worktrees,
-tabs, splits, and repos, and every session exports its repo, worktree, tab, and surface IDs, so
-commands default to the session you run them in. Deeplinks (`supacode://...`) mirror the CLI, so
-you can bind an action to a hotkey or fire it from another app.
-
-### More
-
-- **A real terminal.** libghostty renders every session, with tabs, horizontal and vertical
-  splits, per-surface backgrounds, and theme sync with the app's appearance.
-- **Command palette.** Fuzzy-search and run any action without the mouse: jump to a worktree, open
-  or clone a repo, manage worktrees, run scripts, and drive the full set of pull request actions.
-- **Pull request tracking.** With GitHub integration on, each worktree's PR state, checks, and
-  merge readiness show in the sidebar and refresh live, with configurable merge strategy.
-- **Notifications and bells.** In-app and optional system notifications, a selectable sound,
-  per-surface muting, and an option to float a notified worktree to the top.
-- **Custom scripts.** Named commands with an icon and tint, per repository or global, that run in
-  their own tab and appear in the Script Menu, the palette, and as deeplinks. Repositories also
-  get setup and archive scripts.
-- **Auto-updates** through Sparkle, with a selectable update channel.
+Everything else — worktree-first workflow, zmx-backed session persistence, remote SSH
+repositories, agent presence badges, pull request tracking, custom scripts, the command palette —
+is inherited from upstream; see the [Supacode README](https://github.com/supabitapp/supacode#readme)
+for the full feature tour.
 
 ## Requirements
 
@@ -78,34 +48,32 @@ you can bind an action to a hotkey or fire it from another app.
 ## Quick start
 
 ```bash
-git clone --recursive git@github.com:supabitapp/supacode.git
-cd supacode
+git clone --recursive https://github.com/EddiePikulya/dupacode.git
+cd dupacode
 mise install
 make doctor    # check every build prerequisite and print fixes for anything missing
 make run-app   # build and launch the Debug app
 ```
 
 `make doctor` verifies mise, submodules, a Zig-linkable Xcode, the Metal Toolchain, and the
-pinned tools, and prints the exact command to fix anything that is missing. The build targets
-run it automatically as a quiet preflight.
+pinned tools, and prints the exact command to fix anything that is missing.
 
-## Building
+To install the built app:
 
 ```bash
-make build-ghostty-xcframework   # build GhosttyKit from Zig source (slow, cached)
-make build-app                   # build the macOS app (Debug)
-make run-app                     # build and launch
+make build-app
+ditto .build/DerivedData/Build/Products/Debug/Dupacode.app /Applications/Dupacode.app
 ```
 
-### Building on macOS 26.4+ (Tahoe)
+The `dupacode` CLI is bundled inside the app and on `PATH` in every Dupacode terminal. To use it
+from other terminals: `ln -s /Applications/Dupacode.app/Contents/Resources/bin/dupacode /usr/local/bin/dupacode`.
 
-GhosttyKit is built with a pinned Zig (`0.15.2`, required exactly by ghostty) whose linker
-cannot link the macOS 26.4+ SDK: that SDK dropped the `arm64-macos` slice from `libSystem.tbd`
-([ziglang/zig#31658](https://github.com/ziglang/zig/issues/31658)), so the build fails with a
-wall of `undefined symbol` errors. Install [Xcode 26.3](https://developer.apple.com/download/all/?q=Xcode%2026.3),
-which ships the macOS 26.2 SDK that still has `arm64-macos`. You do not need to switch it
-globally: the build auto-detects a Zig-linkable Xcode and pins it for that build only. After
-installing Xcode 26.3 once:
+## Building on macOS 26.4+ (Tahoe)
+
+GhosttyKit is built with a pinned Zig (`0.15.2`, required exactly by ghostty) whose linker cannot
+link the macOS 26.4+ SDK ([ziglang/zig#31658](https://github.com/ziglang/zig/issues/31658)).
+Install [Xcode 26.3](https://developer.apple.com/download/all/?q=Xcode%2026.3) side by side (no
+global switch needed — the build auto-detects it), then:
 
 ```bash
 sudo DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer xcodebuild -license accept
@@ -113,7 +81,15 @@ sudo DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer xcodebuild -r
 sudo DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer xcodebuild -downloadComponent MetalToolchain
 ```
 
-See [AGENTS.md](AGENTS.md) for the full rationale and the rest of the architecture.
+**If the Metal Toolchain download fails** with `Failed fetching catalog for assetType
+(com.apple.MobileAsset.MetalToolchain)`, Apple's asset server no longer serves the toolchain for
+Xcode 26.3's build. Workaround: download it through your newer Xcode
+(`DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -downloadComponent
+MetalToolchain`), then replace Xcode 26.3's `metal` stub with a wrapper that delegates to it —
+back up `Toolchains/XcodeDefault.xctoolchain/usr/bin/metal`, and install shell shims for `metal`
+and `metallib` that `exec /usr/bin/env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+/usr/bin/xcrun metal[lib] "$@"`. Shader output is toolchain-version independent; linking still
+uses the 26.2 SDK.
 
 ## Development
 
@@ -123,23 +99,30 @@ make test    # run the tests
 make format  # swift-format only
 ```
 
+Fork-specific rule: keep the diff against upstream small and concentrated. Every customization is
+a focused commit on the `dupacode` branch so `git merge upstream/main` stays painless. When a new
+fork change touches a new file, add it to the watch list in
+`.github/scripts/upstream-digest.sh`.
+
+## Syncing with upstream
+
+```bash
+git fetch upstream            # upstream = https://github.com/supabitapp/supacode
+git merge upstream/main       # usually clean; conflicts only in fork-modified files
+make build-app
+```
+
+The `Upstream digest` workflow (Mondays, or manual dispatch) opens an issue summarizing what's
+new upstream and which commits touch fork-modified files.
+
 ## Technical stack
 
 - [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture)
 - [libghostty](https://github.com/ghostty-org/ghostty)
 - [zmx](https://zmx.sh) for session persistence
 
-## Contributing
-
-Contributions are reviewed personally, line by line, and a clear issue is worth more than a
-large pull request. Start by opening an issue, wait for the `ready` label, then open a focused
-pull request that links it. The full process, including the rule that a human (never an AI
-agent) is the accountable author, is in the [Contributing guide](CONTRIBUTING.md).
-
-- [Contributing guide](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md)
-
 ## License
 
-See [LICENSE](LICENSE).
+Inherited from upstream Supacode: [FSL-1.1-ALv2](LICENSE) — free to use, modify, and share for
+any non-competing purpose. This fork is a personal-use modification, exactly what the license
+permits.
