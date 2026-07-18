@@ -10,6 +10,7 @@ upstream_sha=$(git rev-parse upstream/main)
 
 # Files this fork changes; upstream commits touching them are merge-conflict risks.
 fork_files='Project.swift
+supacode/AppIcon.icon/icon.json
 supacode/Info.plist
 SupacodeSettingsShared/Support/SupacodePaths.swift
 supacode-cli/Transport/SocketDiscovery.swift

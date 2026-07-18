@@ -35,8 +35,8 @@
             }
           ],
           "glass" : true,
-          "image-name" : "SC.svg",
-          "name" : "SC",
+          "image-name" : "DC.svg",
+          "name" : "DC",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
