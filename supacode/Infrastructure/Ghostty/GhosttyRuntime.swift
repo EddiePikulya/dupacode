@@ -629,11 +629,13 @@ final class GhosttyRuntime {
       logger.warning("Bundled Supacode themes missing from app bundle.")
       return
     }
-    // Dupacode fork: fully opaque background, no blur.
+    // Dupacode fork: theme sync provides ONLY the theme. Opacity, blur, and
+    // everything else stay under the user's own Ghostty config (upstream also
+    // forced background-opacity/blur here, which silently disabled those keys
+    // in ~/.config/ghostty/config). Ghostty's defaults apply when unset —
+    // background-opacity defaults to 1 (opaque).
     let contents = """
       theme = light:\(lightPath),dark:\(darkPath)
-      background-opacity = 1
-      background-blur = false
       """
     let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("dupacode-theme.conf")
     do {
