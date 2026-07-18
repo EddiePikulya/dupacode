@@ -75,7 +75,8 @@ struct WorktreeDetailView: View {
     .toolbar {
       // Always emit an item: a toolbar that is empty at window creation is
       // never re-installed by SwiftUI, so late-appearing items would vanish.
-      ToolbarItem {
+      // .navigation is the placement the stock title item demonstrably used.
+      ToolbarItem(placement: .navigation) {
         if hasActiveWorktree, let selectedWorktree {
           WorktreeToolbarTabBarView(
             worktree: selectedWorktree,
