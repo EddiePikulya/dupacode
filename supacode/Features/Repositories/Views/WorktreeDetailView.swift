@@ -74,7 +74,7 @@ struct WorktreeDetailView: View {
     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     .toolbar {
       if hasActiveWorktree, let selectedWorktree {
-        ToolbarItem(placement: .principal) {
+        ToolbarItem {
           WorktreeToolbarTabBarView(
             worktree: selectedWorktree,
             manager: terminalManager,

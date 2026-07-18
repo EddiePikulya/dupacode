@@ -128,40 +128,44 @@ struct WorktreeToolbarTabBarView: View {
 
   var body: some View {
     let state = manager.state(for: worktree) { false }
-    if !state.shouldHideTabBar {
-      TerminalTabBarView(
-        manager: state.tabManager,
-        terminalState: state,
-        terminalsStore: terminalsStore,
-        createTab: createTab,
-        split: { direction in
-          _ = state.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
-        },
-        canSplit: state.tabManager.selectedTabId.flatMap { state.activeSurfaceID(for: $0) } != nil,
-        closeTab: { tabId in
-          state.closeTab(tabId)
-        },
-        closeOthers: { tabId in
-          state.closeOtherTabs(keeping: tabId)
-        },
-        closeToRight: { tabId in
-          state.closeTabsToRight(of: tabId)
-        },
-        closeAll: {
-          state.closeAllTabs()
-        },
-        dismissSplitZoom: { tabId in
-          state.dismissSplitZoom(for: tabId)
-        },
-        renameTab: { tabId, newTitle in
-          state.renameTab(tabId, title: newTitle)
-        },
-      )
-      // DIAGNOSTIC: tinted backdrop — if the red strip shows but no tabs, the
-      // item renders and the tab bar itself collapses; if no red, the toolbar
-      // item is not being placed at all.
-      .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
-      .background(Color.red.opacity(0.3))
+    // DIAGNOSTIC: unconditional backdrop — red visible means the toolbar item
+    // is placed; green stripe means the hide-tab-bar branch fired.
+    ZStack(alignment: .leading) {
+      Color.red.opacity(0.35)
+        .frame(minWidth: 240, maxHeight: .infinity)
+      if state.shouldHideTabBar {
+        Color.green.opacity(0.5).frame(width: 60)
+      } else {
+        TerminalTabBarView(
+          manager: state.tabManager,
+          terminalState: state,
+          terminalsStore: terminalsStore,
+          createTab: createTab,
+          split: { direction in
+            _ = state.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
+          },
+          canSplit: state.tabManager.selectedTabId.flatMap { state.activeSurfaceID(for: $0) } != nil,
+          closeTab: { tabId in
+            state.closeTab(tabId)
+          },
+          closeOthers: { tabId in
+            state.closeOtherTabs(keeping: tabId)
+          },
+          closeToRight: { tabId in
+            state.closeTabsToRight(of: tabId)
+          },
+          closeAll: {
+            state.closeAllTabs()
+          },
+          dismissSplitZoom: { tabId in
+            state.dismissSplitZoom(for: tabId)
+          },
+          renameTab: { tabId, newTitle in
+            state.renameTab(tabId, title: newTitle)
+          },
+        )
+      }
     }
+    .frame(minWidth: 240, maxWidth: .infinity, alignment: .leading)
   }
 }
