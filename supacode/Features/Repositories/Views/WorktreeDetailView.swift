@@ -10,12 +10,6 @@ import SwiftUI
   private nonisolated let detailRenderLogger = SupaLogger("DetailRender")
 #endif
 
-/// DIAGNOSTIC: side-effect-free NSView, only to test whether representables
-/// inside toolbar items prevent mounting.
-private struct InertNSViewProbe: NSViewRepresentable {
-  func makeNSView(context: Context) -> NSView { NSView() }
-  func updateNSView(_ nsView: NSView, context: Context) {}
-}
 
 struct WorktreeDetailView: View {
   @Bindable var store: StoreOf<AppFeature>
@@ -27,7 +21,33 @@ struct WorktreeDetailView: View {
   // failing inside item content makes AppKit silently drop the whole item.
   @Environment(GhosttyShortcutManager.self) private var ghosttyShortcuts
   @Environment(CommandKeyObserver.self) private var commandKeyObserver
+  // Measured width of the detail column, driving the titlebar tab bar's frame.
+  @State private var detailWidth: CGFloat = 0
   private var agentBadgesEnabled: Bool { settingsFile.global.agentPresenceBadgesEnabled }
+
+  /// The tab bar hosted in the titlebar accessory. NSHostingView inherits no
+  /// SwiftUI environment, so the required observables are injected explicitly.
+  private func titlebarTabBar(state: WorktreeTerminalState) -> some View {
+    TerminalTabBarView(
+      manager: state.tabManager,
+      terminalState: state,
+      terminalsStore: store.scope(state: \.terminals, action: \.terminals),
+      createTab: { store.send(.newTerminal) },
+      split: { direction in
+        _ = state.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
+      },
+      canSplit: state.tabManager.selectedTabId.flatMap { state.activeSurfaceID(for: $0) } != nil,
+      closeTab: { state.closeTab($0) },
+      closeOthers: { state.closeOtherTabs(keeping: $0) },
+      closeToRight: { state.closeTabsToRight(of: $0) },
+      closeAll: { state.closeAllTabs() },
+      dismissSplitZoom: { state.dismissSplitZoom(for: $0) },
+      renameTab: { state.renameTab($0, title: $1) }
+    )
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .environment(ghosttyShortcuts)
+    .environment(commandKeyObserver)
+  }
 
   var body: some View {
     #if DEBUG
@@ -53,12 +73,6 @@ struct WorktreeDetailView: View {
       selectedWorktreeID: repositories.selectedWorktreeID,
       repositories: repositories
     )
-    let showsToolbarPlaceholder = shouldShowToolbarPlaceholder(
-      repositories: repositories,
-      loadingInfo: loadingInfo,
-      selectedWorktree: selectedWorktree,
-      selectedWorktreeSummaries: selectedWorktreeSummaries
-    )
     let hasActiveWorktree =
       selectedWorktree != nil
       && loadingInfo == nil
@@ -78,10 +92,6 @@ struct WorktreeDetailView: View {
       selectedRow: selectedRow,
       repositories: repositories
     )
-    // Read the manager's stored color here (tracked body evaluation, not the
-    // deferred toolbar closure) so the toolbar scheme invalidates on change.
-    let toolbarScheme: ColorScheme =
-      terminalManager.focusedSurfaceBackground.isLightColor ? .light : .dark
     // Resolved here (a tracked body evaluation, same as the content view does)
     // so the toolbar item never creates state during its own evaluation.
     let toolbarTerminalState: WorktreeTerminalState? =
@@ -97,78 +107,23 @@ struct WorktreeDetailView: View {
     )
     .toolbar(removing: .title)
     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-    .toolbar {
-      WorktreeDetailToolbar(
-        store: store,
-        terminalManager: terminalManager,
-        repositoriesStore: repositoriesStore,
-        scheme: toolbarScheme,
-        showsToolbarPlaceholder: showsToolbarPlaceholder,
-        showsLoadingWorktree: showsToolbarPlaceholder && loadingInfo != nil,
-        hasActiveWorktree: hasActiveWorktree,
-        selectedWorktree: selectedWorktree,
-        selectedRow: selectedRow,
-        repositories: repositories,
-        hideSubtitleOnMatch: hideSubtitleOnMatch,
-        inspectorPane: inspectorPane,
-        inspectorPresented: inspectorPresented,
-        onSelectNotification: selectToolbarNotification
-      )
-      // DIAGNOSTIC matrix: which of these mount tells us exactly what blocks
-      // the tab bar item. P1 unconditional text (proven), P2 text inside the
-      // conditional, P3 simple custom view, P4 tab bar with condition inside.
-      ToolbarItem(placement: .navigation) {
-        Text("P1").foregroundStyle(.red)
-      }
-      if hasActiveWorktree {
-        ToolbarItem(placement: .navigation) {
-          Text("P2").foregroundStyle(.orange)
-        }
-      }
-      ToolbarItem(placement: .navigation) {
-        Color.yellow.opacity(0.6).frame(width: 40, height: 20)
-      }
-      // P3b: representable test — same simple view but with an NSView-backed
-      // background. If this one vanishes, NSViewRepresentable kills items.
-      ToolbarItem(placement: .navigation) {
-        Color.mint.opacity(0.8).frame(width: 40, height: 20)
-          .background(InertNSViewProbe())
-      }
-      // P4: bare horizontal ScrollView — the tab strip's container type.
-      ToolbarItem(placement: .navigation) {
-        ScrollView(.horizontal) {
-          HStack { Text("SCROLL-TEST").foregroundStyle(.cyan) }
-        }
-        .frame(width: 160, height: 24)
-      }
-      // P5: real tab bar with terminal state resolved OUTSIDE the item body —
-      // `state(for:)` creates state on first access, and mutating observable
-      // state during toolbar-item evaluation kills the mount.
-      if let toolbarTerminalState {
-        ToolbarItem(placement: .navigation) {
-          TerminalTabBarView(
-            manager: toolbarTerminalState.tabManager,
-            terminalState: toolbarTerminalState,
-            terminalsStore: store.scope(state: \.terminals, action: \.terminals),
-            createTab: { store.send(.newTerminal) },
-            split: { direction in
-              _ = toolbarTerminalState.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
-            },
-            canSplit: toolbarTerminalState.tabManager.selectedTabId
-              .flatMap { toolbarTerminalState.activeSurfaceID(for: $0) } != nil,
-            closeTab: { toolbarTerminalState.closeTab($0) },
-            closeOthers: { toolbarTerminalState.closeOtherTabs(keeping: $0) },
-            closeToRight: { toolbarTerminalState.closeTabsToRight(of: $0) },
-            closeAll: { toolbarTerminalState.closeAllTabs() },
-            dismissSplitZoom: { toolbarTerminalState.dismissSplitZoom(for: $0) },
-            renameTab: { toolbarTerminalState.renameTab($0, title: $1) }
-          )
-          .frame(width: 600, alignment: .leading)
-          .environment(ghosttyShortcuts)
-          .environment(commandKeyObserver)
-        }
-      }
+    // Dupacode fork: no detail toolbar items — the terminal tab bar lives in
+    // the titlebar strip via an AppKit accessory (width tracks this column).
+    .onGeometryChange(for: CGFloat.self) { proxy in
+      proxy.size.width
+    } action: { newWidth in
+      detailWidth = newWidth
     }
+    .background(
+      TitlebarTabBarAccessory(
+        width: detailWidth,
+        height: TerminalTabBarMetrics.barHeight
+      ) {
+        if let toolbarTerminalState {
+          titlebarTabBar(state: toolbarTerminalState)
+        }
+      }
+    )
     .inspector(
       isPresented: Binding(
         get: { inspectorPresented },
