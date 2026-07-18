@@ -21,8 +21,11 @@ struct SidebarView: View {
       store: store,
       terminalManager: terminalManager
     )
-    .toolbar {
-      ToolbarItem(placement: .primaryAction) {
+    // Dupacode fork: the window toolbar is collapsed, so the Add menu lives in
+    // the sidebar's own top row, to the right of the floating traffic lights.
+    .safeAreaInset(edge: .top, spacing: 0) {
+      HStack(spacing: 0) {
+        Spacer(minLength: 0)
         Menu {
           Button {
             store.send(.setOpenPanelPresented(true))
@@ -54,8 +57,12 @@ struct SidebarView: View {
         }
         .menuIndicator(.hidden)
         .labelStyle(.iconOnly)
+        .menuStyle(.borderlessButton)
+        .fixedSize()
         .help("Add Repository, Folder, or Remote")
+        .padding(.trailing, 10)
       }
+      .frame(height: 28)
     }
     .sheet(item: $store.scope(state: \.remoteConnectionForm, action: \.remoteConnectionForm)) { formStore in
       RemoteConnectionFormView(store: formStore)

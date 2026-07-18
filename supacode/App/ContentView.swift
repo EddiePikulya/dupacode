@@ -32,23 +32,21 @@ struct ContentView: View {
       let _ = contentRenderLogger.info("ContentView.body re-rendered")
     #endif
     // Dupacode fork: the sidebar is always visible (no toggle) and the window
-    // toolbar/titlebar strip is hidden so the tab bar starts at the very top.
-    // The traffic lights float over the sidebar, which gets a top inset.
+    // titlebar is collapsed (WindowTitlebarCollapser) so the tab bar starts at
+    // the very top. The traffic lights float over the sidebar's own top row.
     return NavigationSplitView(columnVisibility: .constant(.all)) {
       SidebarView(store: repositoriesStore, terminalManager: terminalManager)
         .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
         .toolbar(removing: .sidebarToggle)
-        .safeAreaInset(edge: .top, spacing: 0) {
-          Color.clear.frame(height: 28)
-        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
           SidebarBottomCardView(store: store)
         }
     } detail: {
       WorktreeDetailView(store: store, terminalManager: terminalManager)
+        .ignoresSafeArea(.container, edges: .top)
     }
     .navigationSplitViewStyle(.automatic)
-    .toolbarVisibility(.hidden, for: .windowToolbar)
+    .background(WindowTitlebarCollapser())
     .disabled(!repositoriesStore.isInitialLoadComplete)
     .onChange(of: scenePhase) { _, newValue in
       store.send(.scenePhaseChanged(newValue))
