@@ -20,7 +20,6 @@ struct ContentView: View {
   let terminalManager: WorktreeTerminalManager
   @Environment(\.scenePhase) private var scenePhase
   @Environment(GhosttyShortcutManager.self) private var ghosttyShortcuts
-  @State private var leftSidebarVisibility: NavigationSplitViewVisibility = .all
 
   init(store: StoreOf<AppFeature>, terminalManager: WorktreeTerminalManager) {
     self.store = store
@@ -32,9 +31,16 @@ struct ContentView: View {
     #if DEBUG
       let _ = contentRenderLogger.info("ContentView.body re-rendered")
     #endif
-    return NavigationSplitView(columnVisibility: $leftSidebarVisibility) {
+    // Dupacode fork: the sidebar is always visible (no toggle) and the window
+    // toolbar/titlebar strip is hidden so the tab bar starts at the very top.
+    // The traffic lights float over the sidebar, which gets a top inset.
+    return NavigationSplitView(columnVisibility: .constant(.all)) {
       SidebarView(store: repositoriesStore, terminalManager: terminalManager)
         .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
+        .toolbar(removing: .sidebarToggle)
+        .safeAreaInset(edge: .top, spacing: 0) {
+          Color.clear.frame(height: 28)
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
           SidebarBottomCardView(store: store)
         }
@@ -42,6 +48,7 @@ struct ContentView: View {
       WorktreeDetailView(store: store, terminalManager: terminalManager)
     }
     .navigationSplitViewStyle(.automatic)
+    .toolbarVisibility(.hidden, for: .windowToolbar)
     .disabled(!repositoriesStore.isInitialLoadComplete)
     .onChange(of: scenePhase) { _, newValue in
       store.send(.scenePhaseChanged(newValue))
@@ -101,11 +108,6 @@ struct ContentView: View {
     ) { renameStore in
       RenameBranchView(store: renameStore)
     }
-    .focusedSceneAction(\.toggleLeftSidebarAction, enabled: true) {
-      withAnimation(.easeOut(duration: 0.2)) {
-        leftSidebarVisibility = leftSidebarVisibility == .detailOnly ? .all : .detailOnly
-      }
-    }
     .focusedSceneAction(
       \.terminateAllTerminalSessionsAction,
       enabled: store.hasAnyTerminalSurface
@@ -116,9 +118,6 @@ struct ContentView: View {
       \.revealInSidebarAction,
       enabled: repositoriesStore.selectedWorktreeID != nil
     ) {
-      withAnimation(.easeOut(duration: 0.2)) {
-        leftSidebarVisibility = .all
-      }
       store.send(.repositories(.revealSelectedWorktreeInSidebar))
     }
     .focusedSceneAction(

@@ -71,19 +71,13 @@ struct SidebarCommands: Commands {
 
   var body: some Commands {
     let overrides = settingsFile.global.shortcutOverrides
-    let toggleLeftSidebar = AppShortcuts.toggleLeftSidebar.effective(from: overrides)
     let revealInSidebar = AppShortcuts.revealInSidebar.effective(from: overrides)
     let expandAll = AppShortcuts.expandAllSidebarGroups.effective(from: overrides)
     let collapseAll = AppShortcuts.collapseAllSidebarGroups.effective(from: overrides)
     let togglePullRequestInspector = AppShortcuts.togglePullRequestInspector.effective(from: overrides)
     let toggleNotificationsInspector = AppShortcuts.toggleNotificationsInspector.effective(from: overrides)
     CommandGroup(replacing: .sidebar) {
-      Button("Toggle Left Sidebar", systemImage: "sidebar.leading") {
-        toggleLeftSidebarAction?()
-      }
-      .appKeyboardShortcut(toggleLeftSidebar)
-      .help("Toggle Left Sidebar (\(toggleLeftSidebar?.display ?? "none"))")
-      .disabled(toggleLeftSidebarAction?.isEnabled != true)
+      // Dupacode fork: the sidebar is always visible; no toggle menu item.
       Button("Reveal in Sidebar") {
         revealInSidebarAction?()
       }

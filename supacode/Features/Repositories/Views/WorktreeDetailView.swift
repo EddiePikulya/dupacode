@@ -41,12 +41,6 @@ struct WorktreeDetailView: View {
       selectedWorktreeID: repositories.selectedWorktreeID,
       repositories: repositories
     )
-    let showsToolbarPlaceholder = shouldShowToolbarPlaceholder(
-      repositories: repositories,
-      loadingInfo: loadingInfo,
-      selectedWorktree: selectedWorktree,
-      selectedWorktreeSummaries: selectedWorktreeSummaries
-    )
     let hasActiveWorktree =
       selectedWorktree != nil
       && loadingInfo == nil
@@ -66,10 +60,8 @@ struct WorktreeDetailView: View {
       selectedRow: selectedRow,
       repositories: repositories
     )
-    // Read the manager's stored color here (tracked body evaluation, not the
-    // deferred toolbar closure) so the toolbar scheme invalidates on change.
-    let toolbarScheme: ColorScheme =
-      terminalManager.focusedSurfaceBackground.isLightColor ? .light : .dark
+    // Dupacode fork: the window toolbar is gone entirely (ContentView hides
+    // it for the whole window); the tab bar is the topmost element.
     let content = detailContent(
       repositories: repositories,
       loadingInfo: loadingInfo,
@@ -77,26 +69,6 @@ struct WorktreeDetailView: View {
       selectedSlice: selectedRow,
       selectedWorktreeSummaries: selectedWorktreeSummaries
     )
-    .toolbar(removing: .title)
-    .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-    .toolbar {
-      WorktreeDetailToolbar(
-        store: store,
-        terminalManager: terminalManager,
-        repositoriesStore: repositoriesStore,
-        scheme: toolbarScheme,
-        showsToolbarPlaceholder: showsToolbarPlaceholder,
-        showsLoadingWorktree: showsToolbarPlaceholder && loadingInfo != nil,
-        hasActiveWorktree: hasActiveWorktree,
-        selectedWorktree: selectedWorktree,
-        selectedRow: selectedRow,
-        repositories: repositories,
-        hideSubtitleOnMatch: hideSubtitleOnMatch,
-        inspectorPane: inspectorPane,
-        inspectorPresented: inspectorPresented,
-        onSelectNotification: selectToolbarNotification
-      )
-    }
     .inspector(
       isPresented: Binding(
         get: { inspectorPresented },
