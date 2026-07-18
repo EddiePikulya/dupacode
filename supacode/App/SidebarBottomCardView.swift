@@ -129,12 +129,10 @@ struct SidebarBottomCardView: View {
       case .updatesAvailable, .promptInstall: return .agent(agentMode)
       case .hidden: break
       }
-      // Newest card wins. `remoteRepositoriesBeta` is the most recent and
-      // pre-empts the older prompts; insert future cards at the top here.
-      if remoteRepositoriesBetaMode == .visible { return .remoteRepositoriesBeta }
-      if terminalPersistenceMode == .visible { return .terminalPersistenceOnboarding }
-      if highlightMode == .visible { return .highlightRelevantOnboarding }
-      return onboardingMode == .visible ? .nestedWorktreesOnboarding : .none
+      // Dupacode fork: onboarding / announcement cards (persistence, beta,
+      // highlight, nested worktrees) never show; only the functional agent and
+      // git-error cards remain.
+      return .none
     }
 
     /// Hashable identity used by `.animation(_:value:)`. Same-variant state
