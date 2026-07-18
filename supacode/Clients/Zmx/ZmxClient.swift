@@ -330,7 +330,10 @@ nonisolated enum ZmxSessionListParser {
 /// is 104, default socket dir is ~58); `supa-<UUID>` lands at 41, leaving
 /// headroom for a longer custom `ZMX_DIR`.
 nonisolated enum ZmxSessionID {
-  static let prefix = "supa-"
+  // Dupacode fork: distinct prefix (same 5-byte length keeps the socket-path
+  // budget math) so neither app's session listing / orphan reaper ever touches
+  // the other's zmx sessions.
+  static let prefix = "dupa-"
 
   static func make(surfaceID: UUID) -> String {
     prefix + surfaceID.uuidString.lowercased()
@@ -358,13 +361,17 @@ nonisolated enum ZmxSocketBudget {
       return custom
     }
     let uid = getuid()
+    // Dupacode fork: "dmx" dirs (same length as "zmx") so the sockets never
+    // share a directory with a running stock Supacode. The app pins ZMX_DIR to
+    // this resolved dir for every zmx subprocess and wrapped shell, so the
+    // bundled zmx binary's own resolver never reintroduces the shared default.
     if let xdg = env["XDG_RUNTIME_DIR"], !xdg.isEmpty {
-      return "\(trimTrailingSlash(xdg))/zmx"
+      return "\(trimTrailingSlash(xdg))/dmx"
     }
     if let tmp = env["TMPDIR"], !tmp.isEmpty {
-      return "\(trimTrailingSlash(tmp))/zmx-\(uid)"
+      return "\(trimTrailingSlash(tmp))/dmx-\(uid)"
     }
-    return "/tmp/zmx-\(uid)"
+    return "/tmp/dmx-\(uid)"
   }
 
   private static func trimTrailingSlash(_ value: String) -> String {
