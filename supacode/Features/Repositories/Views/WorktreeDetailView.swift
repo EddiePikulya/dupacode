@@ -82,6 +82,12 @@ struct WorktreeDetailView: View {
     // deferred toolbar closure) so the toolbar scheme invalidates on change.
     let toolbarScheme: ColorScheme =
       terminalManager.focusedSurfaceBackground.isLightColor ? .light : .dark
+    // Resolved here (a tracked body evaluation, same as the content view does)
+    // so the toolbar item never creates state during its own evaluation.
+    let toolbarTerminalState: WorktreeTerminalState? =
+      hasActiveWorktree
+      ? selectedWorktree.map { terminalManager.state(for: $0) { false } }
+      : nil
     let content = detailContent(
       repositories: repositories,
       loadingInfo: loadingInfo,
@@ -135,14 +141,27 @@ struct WorktreeDetailView: View {
         }
         .frame(width: 160, height: 24)
       }
-      // P5: the real tab bar (probe removed from it last build).
-      if hasActiveWorktree, let selectedWorktree {
+      // P5: real tab bar with terminal state resolved OUTSIDE the item body —
+      // `state(for:)` creates state on first access, and mutating observable
+      // state during toolbar-item evaluation kills the mount.
+      if let toolbarTerminalState {
         ToolbarItem(placement: .navigation) {
-          WorktreeToolbarTabBarView(
-            worktree: selectedWorktree,
-            manager: terminalManager,
+          TerminalTabBarView(
+            manager: toolbarTerminalState.tabManager,
+            terminalState: toolbarTerminalState,
             terminalsStore: store.scope(state: \.terminals, action: \.terminals),
-            createTab: { store.send(.newTerminal) }
+            createTab: { store.send(.newTerminal) },
+            split: { direction in
+              _ = toolbarTerminalState.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
+            },
+            canSplit: toolbarTerminalState.tabManager.selectedTabId
+              .flatMap { toolbarTerminalState.activeSurfaceID(for: $0) } != nil,
+            closeTab: { toolbarTerminalState.closeTab($0) },
+            closeOthers: { toolbarTerminalState.closeOtherTabs(keeping: $0) },
+            closeToRight: { toolbarTerminalState.closeTabsToRight(of: $0) },
+            closeAll: { toolbarTerminalState.closeAllTabs() },
+            dismissSplitZoom: { toolbarTerminalState.dismissSplitZoom(for: $0) },
+            renameTab: { toolbarTerminalState.renameTab($0, title: $1) }
           )
           .frame(width: 600, alignment: .leading)
           .environment(ghosttyShortcuts)
