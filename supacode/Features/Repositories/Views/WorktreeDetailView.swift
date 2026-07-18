@@ -15,6 +15,10 @@ struct WorktreeDetailView: View {
   let terminalManager: WorktreeTerminalManager
   @Shared(.appStorage("worktreeRowHideSubtitleOnMatch")) private var hideSubtitleOnMatch = true
   @Shared(.settingsFile) private var settingsFile: SettingsFile
+  // Dupacode fork: measured width of the detail content, fed to the toolbar
+  // tab bar as an explicit frame — toolbar items size to their content's ideal
+  // width, and the GeometryReader-based tab bar has none of its own.
+  @State private var detailWidth: CGFloat = 0
   private var agentBadgesEnabled: Bool { settingsFile.global.agentPresenceBadgesEnabled }
 
   var body: some View {
@@ -75,6 +79,11 @@ struct WorktreeDetailView: View {
       selectedSlice: selectedRow,
       selectedWorktreeSummaries: selectedWorktreeSummaries
     )
+    .onGeometryChange(for: CGFloat.self) { proxy in
+      proxy.size.width
+    } action: { newWidth in
+      detailWidth = newWidth
+    }
     .toolbar(removing: .title)
     .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
     .toolbar {
@@ -88,6 +97,11 @@ struct WorktreeDetailView: View {
             manager: terminalManager,
             terminalsStore: store.scope(state: \.terminals, action: \.terminals),
             createTab: { store.send(.newTerminal) }
+          )
+          .frame(
+            width: max(detailWidth - 16, 240),
+            height: TerminalTabBarMetrics.barHeight,
+            alignment: .leading
           )
           .id(selectedWorktree.id)
         } else {
