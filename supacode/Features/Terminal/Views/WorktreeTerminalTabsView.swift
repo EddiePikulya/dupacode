@@ -30,37 +30,9 @@ struct WorktreeTerminalTabsView: View {
     let dividerColor = manager.splitDividerColor()
     let _ = colorScheme
     VStack(spacing: 0) {
-      if !state.shouldHideTabBar {
-        TerminalTabBarView(
-          manager: state.tabManager,
-          terminalState: state,
-          terminalsStore: terminalsStore,
-          createTab: createTab,
-          split: { direction in
-            _ = state.performBindingActionOnFocusedSurface(direction.ghosttyBinding)
-          },
-          canSplit: state.tabManager.selectedTabId.flatMap { state.activeSurfaceID(for: $0) } != nil,
-          closeTab: { tabId in
-            state.closeTab(tabId)
-          },
-          closeOthers: { tabId in
-            state.closeOtherTabs(keeping: tabId)
-          },
-          closeToRight: { tabId in
-            state.closeTabsToRight(of: tabId)
-          },
-          closeAll: {
-            state.closeAllTabs()
-          },
-          dismissSplitZoom: { tabId in
-            state.dismissSplitZoom(for: tabId)
-          },
-          renameTab: { tabId, newTitle in
-            state.renameTab(tabId, title: newTitle)
-          },
-        )
-        .transition(.move(edge: .top).combined(with: .opacity))
-      }
+      // Dupacode fork: the tab bar lives in the titlebar strip
+      // (TitlebarTabBarAccessory mounted from WorktreeDetailView), so the
+      // content area is pure terminal.
       if let selectedId = state.tabManager.selectedTabId {
         TerminalTabContentStack(tabs: state.tabManager.tabs, selectedTabId: selectedId) { tabId in
           TerminalSplitTreePane(
